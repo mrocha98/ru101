@@ -1,0 +1,45 @@
+version: '3'
+
+services:
+  redis:
+    image: redis/redis-stack-server:latest
+    container_name: uc01-redis
+    restart: on-failure
+    environment:
+      REDIS_ARGS: --loglevel warning --requirepass ssssh
+    networks:
+      - uc01
+    ports:
+      - "6379:6379"
+
+  dump:
+    build:
+      context: .
+      target: uc01-dump
+    container_name: uc01-dump
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ssssh
+    networks:
+      - uc01
+    depends_on:
+      - redis
+
+  py:
+    build:
+      context: .
+      target: uc01-py
+    container_name: uc01-py
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ssssh
+    networks:
+      - uc01
+    depends_on:
+      - redis
+
+networks:
+  uc01:
+    driver: bridge
